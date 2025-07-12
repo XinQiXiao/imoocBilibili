@@ -57,12 +57,18 @@ public class UserService {
         return userDao.getUserByPhone(phone);
     }
 
+    public User getUserByPhoneOrEmail(String phone, String email){
+        return userDao.getUserByPhoneOrEmail(phone, email);
+    }
+
     public String login(User user) throws Exception{
-        String phone = user.getPhone();
-        if(StringUtils.isNullOrEmpty(phone)){
-            throw new ConditionException("手机号不能为空！");
+        String phone = user.getPhone() == null ? "" : user.getPhone();
+        String email = user.getEmail() == null ? "" : user.getEmail();
+        if(StringUtils.isNullOrEmpty(phone) && StringUtils.isNullOrEmpty(email)){
+            throw new ConditionException("参数异常！");
         }
-        User dbUser = this.getUserByPhone(phone);
+
+        User dbUser = this.getUserByPhoneOrEmail(phone, email);
         if(dbUser == null){
             throw new ConditionException("当前用户不存在！");
         }
@@ -87,5 +93,30 @@ public class UserService {
         UserInfo userInfo = userDao.getUserInfoByUserId(userId);
         user.setUserInfo(userInfo);
         return user;
+    }
+
+    public void updateUsers(User user) throws Exception{
+        Long id = user.getId();
+        User dbUser = userDao.getUserById(id);
+        if(dbUser == null){
+            throw new ConditionException("用户不存在！");
+        }
+        if(!StringUtils.isNullOrEmpty(user.getPassword())){
+            String rawPassword = RSAUtil.decrypt(user.getPassword());
+            String salt = dbUser.getSalt();
+            String md5Password = MD5Util.sign(rawPassword, salt, "UTF-8");
+            user.setPassword(md5Password);
+        }
+        user.setUpdateTime(new Date());
+        userDao.updateUsers(user);
+    }
+
+    public void updateUserInfos(UserInfo userInfo){
+        userInfo.setUpdateTime(new Date());
+        userDao.updateUserInfos(userInfo);
+    }
+
+    public User getUserById(Long followingId){
+        return userDao.getUserById(followingId);
     }
 }
