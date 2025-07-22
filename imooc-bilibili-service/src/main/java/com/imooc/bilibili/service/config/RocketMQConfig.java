@@ -3,7 +3,9 @@ package com.imooc.bilibili.service.config;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.imooc.bilibili.domain.UserFollowing;
+import com.imooc.bilibili.domain.UserMoment;
 import com.imooc.bilibili.domain.constant.UserMomentsConstant;
+import com.imooc.bilibili.service.UserFollowingService;
 import io.netty.util.internal.StringUtil;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
@@ -28,6 +30,9 @@ public class RocketMQConfig {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+
+    @Autowired
+    private UserFollowingService userFollowingService;
 
     @Bean("momentsProducer")
     public DefaultMQProducer momentsProducer () throws Exception {
@@ -62,8 +67,25 @@ public class RocketMQConfig {
 //        consumer.registerMessageListener(new MessageListenerConcurrently() {
 //            @Override
 //            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context){
-//                for(MessageExt msg : msgs){
-//                    System.out.println(msg);
+//                MessageExt msg = msgs.get(0);
+//                if(msg == null){
+//                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+//                }
+//                String bodyStr = new String(msg.getBody());
+//                UserMoment userMoment = JSONObject.toJavaObject(JSONObject.parseObject(bodyStr), UserMoment.class);
+//                Long userId = userMoment.getUserId();
+//                List<UserFollowing> fanList = userFollowingService.getUserFans(userId);
+//                for(UserFollowing fan : fanList){
+//                    String key = "subscribed-" + fan.getUserId();
+//                    String subscribedListStr = redisTemplate.opsForValue().get(key);
+//                    List<UserMoment> subscribedList;
+//                    if(StringUtil.isNullOrEmpty(subscribedListStr)){
+//                        subscribedList = new ArrayList<>();
+//                    } else {
+//                        subscribedList = JSONArray.parseArray(subscribedListStr, UserMoment.class);
+//                    }
+//                    subscribedList.add(userMoment);
+//                    redisTemplate.opsForValue().set(key,JSONObject.toJSONString(subscribedList));
 //                }
 //                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
 //            }
