@@ -32,9 +32,9 @@ public class UserMomentsService {
     public void addUserMoments(UserMoment userMoment) throws Exception {
         userMoment.setCreateTime(new Date());
         userMomentsDao.addUserMoments(userMoment);
-        DefaultMQProducer producer = (DefaultMQProducer)applicationContext.getBean("momentsProducer");
-        Message msg = new Message(UserMomentsConstant.TOPIC_MOMENTS, JSONObject.toJSONString(userMoment).getBytes(StandardCharsets.UTF_8));
-        RocketMQUtil.syncSendMsg(producer, msg);
+//        DefaultMQProducer producer = (DefaultMQProducer)applicationContext.getBean("momentsProducer");
+//        Message msg = new Message(UserMomentsConstant.TOPIC_MOMENTS, JSONObject.toJSONString(userMoment).getBytes(StandardCharsets.UTF_8));
+//        RocketMQUtil.syncSendMsg(producer, msg);
     }
 
     public List<UserMoment> getUserSubscribedMoments(Long userId) {
