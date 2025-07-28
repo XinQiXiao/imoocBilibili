@@ -1,19 +1,13 @@
 package com.imooc.bilibili.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.imooc.bilibili.dao.UserMomentsDao;
 import com.imooc.bilibili.domain.UserMoment;
-import com.imooc.bilibili.domain.constant.UserMomentsConstant;
-import com.imooc.bilibili.service.util.RocketMQUtil;
-import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.common.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
