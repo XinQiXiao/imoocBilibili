@@ -3,6 +3,7 @@ package com.imooc.bilibili.service;
 import com.imooc.bilibili.dao.FileDao;
 import com.imooc.bilibili.domain.File;
 
+import com.imooc.bilibili.service.util.MD5Util;
 import io.netty.util.internal.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,5 +36,13 @@ public class FileService {
             fileDao.addFile(dbFileMD5);
         }
         return url;
+    }
+
+    public String getFileMD5(MultipartFile file) throws Exception {
+        return MD5Util.getFileMD5(file);
+    }
+
+    public File getFileByMd5(String fileMd5) {
+        return fileDao.getFileByMD5(fileMd5);
     }
 }
