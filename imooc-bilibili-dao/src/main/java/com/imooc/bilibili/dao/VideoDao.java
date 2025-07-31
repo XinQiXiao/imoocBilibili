@@ -1,8 +1,6 @@
 package com.imooc.bilibili.dao;
 
-import com.imooc.bilibili.domain.Video;
-import com.imooc.bilibili.domain.VideoLike;
-import com.imooc.bilibili.domain.VideoTag;
+import com.imooc.bilibili.domain.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,4 +28,35 @@ public interface VideoDao {
                             @Param("userId") Long userId);
 
     Long getVideoLikes(Long videoId);
+
+    Integer deleteVideoCollection(@Param("videoId") Long videoId,
+                                  @Param("userId") Long userId);
+
+    Integer addVideoCollection(VideoCollection videoCollection);
+
+    void updateVideoCollection(VideoCollection videoCollection);
+
+    Long getVideoCollections(Long videoId);
+
+    VideoCollection getVideoCollectionByVideoIdAndUserId(@Param("videoId") Long videoId,
+                                                         @Param("userId") Long userId);
+
+    VideoCoin getVideoCoinByVideoIdAndUserId(@Param("videoId") Long videoId,
+                                             @Param("userId") Long userId);
+
+    Integer addVideoCoin(VideoCoin videoCoin);
+
+    Integer updateVideoCoin(VideoCoin videoCoin);
+
+    Long getVideoCoinsAmount(Long videoId);
+
+    Integer addVideoComment(VideoComment videoComment);
+
+    Integer pageCountVideoComments(Map<String, Object> params);
+
+    List<VideoComment> pageListVideoComments(Map<String, Object> params);
+
+    List<VideoComment> batchGetVideoCommentsByRootIds(@Param("rootIdList") List<Long> rootIdList);
+
+    Video getVideoDetails(Long videoId);
 }
