@@ -1,23 +1,31 @@
 package com.imooc.bilibili.service.websocket;
 
+import com.alibaba.fastjson.JSONObject;
+import com.imooc.bilibili.domain.Danmu;
+import com.imooc.bilibili.domain.constant.UserMomentsConstant;
+import com.imooc.bilibili.service.DanmuService;
+import com.imooc.bilibili.service.util.RocketMQUtil;
 import com.imooc.bilibili.service.util.TokenUtil;
+import io.netty.util.internal.StringUtil;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.common.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-@ServerEndpoint("/imserver")
+@ServerEndpoint("/imserver/{token}")
 public class WebSocketService {
 
     private final Logger logger =  LoggerFactory.getLogger(this.getClass());
@@ -69,11 +77,59 @@ public class WebSocketService {
         logger.info("用户退出：" + sessionId + "当前在线人数为：" + ONLINE_COUNT.get());
     }
 
+    @OnMessage
+    public void onMessage(String message){
+        logger.info("用户信息：" + sessionId + "，报文：" + message);
+        if(!StringUtil.isNullOrEmpty(message)){
+            try{
+                //群发消息
+                for(Map.Entry<String, WebSocketService> entry : WEBSOCKET_MAP.entrySet()){
+                    WebSocketService webSocketService = entry.getValue();
+                    DefaultMQProducer danmusProducer = (DefaultMQProducer)APPLICATION_CONTEXT.getBean("danmusProducer");
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("message", message);
+                    jsonObject.put("sessionId", webSocketService.getSessionId());
+                    Message msg = new Message(UserMomentsConstant.TOPIC_DANMUS, jsonObject.toJSONString().getBytes(StandardCharsets.UTF_8));
+                    RocketMQUtil.asyncSendMsg(danmusProducer, msg);
+                }
+                if(this.userId != null){
+                    //保存弹幕到数据库
+                    Danmu danmu = JSONObject.parseObject(message, Danmu.class);
+                    danmu.setUserId(userId);
+                    danmu.setCreateTime(new Date());
+                    DanmuService danmuService = (DanmuService)APPLICATION_CONTEXT.getBean("danmuService");
+                    danmuService.asyncAddDanmu(danmu);
+                    //保存弹幕到redis
+                    danmuService.addDanmusToRedis(danmu);
+                }
+            }catch (Exception e){
+                logger.error("弹幕接收出现问题");
+                e.printStackTrace();
+            }
+        }
+    }
+
     @OnError
     public void onError(Throwable error){
     }
 
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 }
