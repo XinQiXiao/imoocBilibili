@@ -274,4 +274,12 @@ public class VideoService {
         result.put("userInfo", userInfo);
         return result;
     }
+
+    public List<VideoTag> getVideoTagsByVideoId(Long videoId) {
+        return videoDao.getVideoTagsByVideoId(videoId);
+    }
+
+    public void deleteVideoTags(List<Long> tagIdList, Long videoId) {
+        videoDao.deleteVideoTags(tagIdList, videoId);
+    }
 }

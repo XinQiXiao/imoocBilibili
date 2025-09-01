@@ -14,6 +14,11 @@ public interface VideoDao {
 
     Integer batchAddVideoTags(List<VideoTag> videoTagList);
 
+    List<VideoTag> getVideoTagsByVideoId(Long videoId);
+
+    Integer deleteVideoTags(@Param("tagIdList") List<Long> tagIdList,
+                            @Param("videoId") Long videoId);
+
     Integer pageCountVideos(Map<String, Object> params);
 
     List<Video> pageListVideos(Map<String, Object> params);

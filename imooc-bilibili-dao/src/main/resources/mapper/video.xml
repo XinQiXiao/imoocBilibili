@@ -47,6 +47,29 @@
         </foreach>
     </insert>
 
+    <select id="getVideoTagsByVideoId" parameterType="java.lang.Long" resultType="com.imooc.bilibili.domain.VideoTag">
+        select
+            tvt.videoId,
+            tvt.tagId,
+            tt.name tagName
+        from
+            t_video_tag tvt
+                left join t_tag tt on tvt.tagId = tt.id
+        where
+            tvt.videoId = #{videoId}
+    </select>
+
+    <delete id="deleteVideoTags">
+        delete from
+        t_video_tag
+        where
+        videoId = #{videoId}
+        and tagId in
+        <foreach collection="tagIdList" item="tagId" open="(" close=")" separator=",">
+            #{tagId}
+        </foreach>
+    </delete>
+
     <select id="pageCountVideos" parameterType="java.util.Map" resultType="java.lang.Integer">
         select
         count(1)
