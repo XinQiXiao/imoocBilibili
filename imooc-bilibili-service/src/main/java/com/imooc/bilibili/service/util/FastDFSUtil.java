@@ -3,6 +3,7 @@ package com.imooc.bilibili.service.util;
 import com.github.tobato.fastdfs.domain.fdfs.FileInfo;
 import com.github.tobato.fastdfs.domain.fdfs.MetaData;
 import com.github.tobato.fastdfs.domain.fdfs.StorePath;
+import com.github.tobato.fastdfs.domain.proto.storage.DownloadCallback;
 import com.github.tobato.fastdfs.service.AppendFileStorageClient;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import com.imooc.bilibili.domain.exception.ConditionException;
@@ -15,9 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.*;
 
 @Component
@@ -184,5 +183,31 @@ public class FastDFSUtil {
         response.setContentLength((int)len);
         response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
         HttpUtil.get(url, headers, response);
+    }
+
+    public void downLoadFile(String url, String localPath) {
+        fastFileStorageClient.downloadFile(DEFAULT_GROUP, url,
+                new DownloadCallback<String>() {
+                    @Override
+                    public String recv(InputStream ins) throws IOException {
+                        File file = new File(localPath);
+                        OutputStream os = new FileOutputStream(file);
+                        int len = 0;
+                        byte[] buffer = new byte[1024];
+                        while ((len = ins.read(buffer)) != -1) {
+                            os.write(buffer, 0, len);
+                        }
+                        os.close();
+                        ins.close();
+                        return "success";
+                    }
+                });
+    }
+
+    public String uploadCommonFile(File file, String fileType) throws Exception {
+        Set<MetaData> metaDataSet = new HashSet<>();
+        StorePath storePath = fastFileStorageClient.uploadFile(new FileInputStream(file),
+                file.length(), fileType, metaDataSet);
+        return storePath.getPath();
     }
 }
